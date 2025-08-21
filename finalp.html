@@ -1,161 +1,204 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To-Do List</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Professional To-Do List</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+ 
+  <link rel="stylesheet" href="todo.css">
+</head>
+
     <style>
-        h2{
-            color:deepskyblue;
-        }
-        body {
-            font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-            background: #FAFAFA;
-            text-align: center;
-            padding: 20px;
-        }
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-           background-color: #E3F2FD;
-             height:500px;
-            font-size: 30px;
-            color:white;
-            font-weight: 300;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 30px rgba(240, 232, 232, 0.032);
-            border: 6px solid rgb(19, 17, 17);
-            background-color: linear-gradient(to right red,yellow);
-            
-        }
-        input {
-            width: 70%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        button {
-            padding: 10px;
-            background: rgb(15, 15, 15);
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        button:hover {
-            background: #6be987;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-            margin-top: 20px;
-        }
-        li {
-            background:black;
-            margin: 5px 0;
-            padding: 10px;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #ddd;
-        }
-        .completed {
-            text-decoration: line-through;
-            color: rgb(190, 34, 34);
-        }
-        .delete-btn {
-            background: rgb(221, 221, 218);
-            color: rgb(59, 179, 227);
-            border: none;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 8px;
-        }
-        .delete-btn:hover {
-            background: rgb(224, 43, 143);
-        }
-        .error {
-            color: red;
-            margin-top: 10px;
-        }
+       
+        
+body {
+  font-family: 'Poppins', sans-serif;
+  transition: background 0.3s, color 0.3s;
+}
+
+.light-theme {
+  background: #f5f6fa;
+  color: #2c3e50;
+}
+
+.dark-theme {
+  background: #1e272e;
+  color: #f5f6fa;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.list-group-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  transition: transform 0.2s;
+}
+
+.list-group-item:hover {
+  transform: scale(1.02);
+}
+
+.completed {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+        
     </style>
 </head>
-<body>
+<body class="light-theme">
 
+ 
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
     <div class="container">
-        <h2>To-Do List</h2>
-        <input type="text" id="taskInput" placeholder="Add your task...">
-        <button onclick="addTask()">Add</button>
-        <p id="error" class="error"></p>
-        <ul id="taskList"></ul>
+      <a class="navbar-brand fw-bold" href="#">📝 To-Do Pro</a>
+      <button class="btn btn-outline-light ms-auto" id="themeToggle">
+        <i class="fas fa-moon"></i>
+      </button>
     </div>
+  </nav>
 
+ 
+  <div class="container mt-5">
+    <div class="card shadow-lg p-4 rounded-4 glass-card">
+      <h2 class="text-center mb-4">My Task Manager</h2>
+
+    
+      <div class="input-group mb-3">
+        <input type="text" id="taskInput" class="form-control" placeholder="Add a new task...">
+        <button class="btn btn-primary" id="addTaskBtn"><i class="fas fa-plus"></i> Add</button>
+      </div>
+        
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <input type="text" id="searchInput" class="form-control w-50" placeholder="Search tasks...">
+        <select id="filter" class="form-select w-25">
+          <option value="all">All</option>
+          <option value="completed">Completed</option>
+          <option value="pending">Pending</option>
+        </select>
+      </div>
+
+     
+      <ul class="list-group" id="taskList"></ul>
+    </div>
+  </div>
+
+ 
+ 
+</body>
+
+
+
+   
     <script>
-        document.addEventListener("DOMContentLoaded", loadTasks);
+    
+const taskInput = document.getElementById("taskInput");
+const addTaskBtn = document.getElementById("addTaskBtn");
+const taskList = document.getElementById("taskList");
+const searchInput = document.getElementById("searchInput");
+const filter = document.getElementById("filter");
+const themeToggle = document.getElementById("themeToggle");
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
-        function addTask() {
-            let taskInput = document.getElementById("taskInput");
-            let taskText = taskInput.value.trim();
-            let taskList = document.getElementById("taskList");
-            let error = document.getElementById("error");
 
-            if (taskText === "") return;
-            
-            if (taskList.children.length >= 5) {
-                error.textContent = "You can only add up to 5 tasks!";
-                return;
-            }
+function renderTasks() {
+  taskList.innerHTML = "";
+  let searchText = searchInput.value.toLowerCase();
+  let filterValue = filter.value;
 
-            error.textContent = "";
+  tasks.forEach((task, index) => {
+    if (
+      (filterValue === "all" ||
+        (filterValue === "completed" && task.completed) ||
+        (filterValue === "pending" && !task.completed)) &&
+      task.text.toLowerCase().includes(searchText)
+    ) {
+      let li = document.createElement("li");
+      li.className =
+        "list-group-item d-flex justify-content-between align-items-center";
+      if (task.completed) li.classList.add("completed");
 
-            let li = document.createElement("li");
-            li.innerHTML = `<span onclick="toggleComplete(this)">${taskText}</span>
-                            <button class="delete-btn" onclick="deleteTask(this)">X</button>`;
+      li.innerHTML = `
+        <span onclick="toggleComplete(${index})" style="cursor:pointer;">
+          ${task.text}
+        </span>
+        <div>
+          <button class="btn btn-sm btn-success me-2" onclick="toggleComplete(${index})">
+            <i class="fas fa-check"></i>
+          </button>
+          <button class="btn btn-sm btn-warning me-2" onclick="editTask(${index})">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn btn-sm btn-danger" onclick="deleteTask(${index})">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      `;
+      taskList.appendChild(li);
+    }
+  });
 
-            taskList.appendChild(li);
-            saveTasks();
-            taskInput.value = "";
-        }
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+}
 
-        function toggleComplete(task) {
-            task.classList.toggle("completed");
-            saveTasks();
-        }
 
-        function deleteTask(button) {
-            button.parentElement.remove();
-            document.getElementById("error").textContent = "";
-            saveTasks();
-        }
+addTaskBtn.addEventListener("click", () => {
+  let text = taskInput.value.trim();
+  if (text) {
+    tasks.push({ text, completed: false });
+    taskInput.value = "";
+    renderTasks();
+  }
+});
 
-        function saveTasks() {
-            let tasks = [];
-            document.querySelectorAll("#taskList li").forEach(li => {
-                tasks.push({
-                    text: li.querySelector("span").innerText,
-                    completed: li.querySelector("span").classList.contains("completed")
-                });
-            });
-            localStorage.setItem("tasks", JSON.stringify(tasks));
-        }
 
-        function loadTasks() {
-            let savedTasks = localStorage.getItem("tasks");
-            if (!savedTasks) return;
-            let tasks = JSON.parse(savedTasks);
+function editTask(index) {
+  let newText = prompt("Edit task:", tasks[index].text);
+  if (newText) {
+    tasks[index].text = newText.trim();
+    renderTasks();
+  }
+}
 
-            let taskList = document.getElementById("taskList");
-            tasks.forEach(task => {
-                let li = document.createElement("li");
-                li.innerHTML = `<span onclick="toggleComplete(this)" class="${task.completed ? 'completed' : ''}">${task.text}</span>
-                                <button class="delete-btn" onclick="deleteTask(this)">X</button>`;
-                taskList.appendChild(li);
-            });
-        }
+
+function toggleComplete(index) {
+  tasks[index].completed = !tasks[index].completed;
+  renderTasks();
+}
+
+
+function deleteTask(index) {
+  tasks.splice(index, 1);
+  renderTasks();
+}
+
+
+searchInput.addEventListener("input", renderTasks);
+filter.addEventListener("change", renderTasks);
+
+
+themeToggle.addEventListener("click", () => {
+  document.body.classList.toggle("dark-theme");
+  document.body.classList.toggle("light-theme");
+});
+
+
+renderTasks();
+
     </script>
 
 </body>
 </html>
+
 
